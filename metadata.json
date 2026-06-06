@@ -1,0 +1,6 @@
+{
+  "name": "3D Gift Masterpiece",
+  "description": "An Awwwards-level 3D experience featuring a rotating cube, interactive parallax gallery, and generative constellation starfield.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
