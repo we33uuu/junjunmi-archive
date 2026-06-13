@@ -39,6 +39,7 @@ export default function WelcomeGate({ onEnter }: WelcomeGateProps) {
         let animationFrameId: number;
         let stars: { x: number; y: number; size: number; opacity: number; phase: number; freq: number; speed: number; color: string; cluster: number }[] = [];
         let shootingStars: { x: number; y: number; length: number; speed: number; opacity: number }[] = [];
+        let lastShootingStarTime = 0; // 定时器：控制流星间隔
 
         const initStars = () => {
           canvas.width = window.innerWidth;
@@ -97,33 +98,44 @@ export default function WelcomeGate({ onEnter }: WelcomeGateProps) {
           ctx.shadowBlur = 0;
           ctx.globalAlpha = 1;
 
-          if (Math.random() < 0.012 && shootingStars.length < 2) {
+          // 流星定时生成：精确每 5 秒一颗，统一方向（右下 60°），至多 1 颗
+          if (time - lastShootingStarTime > 5000 && shootingStars.length < 1) {
+            lastShootingStarTime = time;
+            const startX = canvas.width * 0.1 + Math.random() * canvas.width * 0.5;
+            const startY = -10;
             shootingStars.push({
-              x: Math.random() * canvas.width,
-              y: Math.random() * canvas.height * 0.3,
-              length: Math.random() * 100 + 50,
-              speed: Math.random() * 15 + 10,
-              opacity: 0.9
+              x: startX,
+              y: startY,
+              length: 100,                    // 固定尾迹长度
+              speed: 1.5,                      // 统一速度，缓慢优雅
+              opacity: 0.8,
             });
           }
 
-          shootingStars.forEach((ss, index) => {
-            ss.x += ss.speed;
-            ss.y += ss.speed * 0.3;
-            ss.opacity -= 0.015;
+          // 所有流星统一方向：右下 60°（dx=1, dy=0.577）
+          const dirX = 0.866;   // cos(30°) ≈ 0.866
+          const dirY = 0.5;     // sin(30°) ≈ 0.5
 
-            if (ss.opacity <= 0) {
+          shootingStars.forEach((ss, index) => {
+            ss.x += ss.speed * dirX;
+            ss.y += ss.speed * dirY;
+            ss.opacity -= 0.004;  // 更慢淡出
+
+            if (ss.opacity <= 0 || ss.y > canvas.height + 20 || ss.x > canvas.width + 20) {
               shootingStars.splice(index, 1);
             } else {
-              const grad = ctx.createLinearGradient(ss.x, ss.y, ss.x - ss.length, ss.y - ss.length * 0.3);
+              const grad = ctx.createLinearGradient(
+                ss.x, ss.y,
+                ss.x - ss.length * dirX, ss.y - ss.length * dirY
+              );
               grad.addColorStop(0, `rgba(230, 198, 135, ${ss.opacity})`);
               grad.addColorStop(1, 'transparent');
-              
+
               ctx.strokeStyle = grad;
               ctx.lineWidth = 1.0;
               ctx.beginPath();
               ctx.moveTo(ss.x, ss.y);
-              ctx.lineTo(ss.x - ss.length, ss.y - ss.length * 0.3);
+              ctx.lineTo(ss.x - ss.length * dirX, ss.y - ss.length * dirY);
               ctx.stroke();
             }
           });
@@ -314,13 +326,26 @@ export default function WelcomeGate({ onEnter }: WelcomeGateProps) {
       id="welcome-gate-wrapper" 
       className="fixed inset-0 w-full h-full z-[10000] overflow-hidden pointer-events-none"
     >
-      <div 
+      <div
         id="welcome-gate"
         ref={containerRef}
-        className="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-[#050406] cursor-default pointer-events-auto"
+        className="absolute inset-0 w-full h-full flex flex-col items-center justify-center cursor-default pointer-events-auto"
+        style={{ background: 'transparent' }}
       >
+        {/* Background Image Layer */}
+        <div
+          className="absolute inset-0 z-[-1]"
+          style={{
+            backgroundImage: 'url(/cube-bg-8.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        />
+        {/* Dark tint overlay for readability */}
+        <div className="absolute inset-0 z-[-1] bg-black/60" />
+
         {/* Starfield Background */}
-        <canvas 
+        <canvas
           ref={canvasRef}
           id="starfield-canvas"
           className="absolute inset-0 z-0 pointer-events-none"

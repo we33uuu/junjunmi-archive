@@ -84,17 +84,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Eternal Polar Night: Fixed Background Layer */}
-      <div 
-        className="fixed inset-0 w-full h-full pointer-events-none transition-opacity duration-[3000ms]"
-        style={{ 
-          zIndex: -2,
-          opacity: phase === AppPhase.FINALE ? 1 : 0,
-          background: 'linear-gradient(to bottom, #05040A 0%, #0B0914 40%, #151026 75%, #221633 100%)',
-          backgroundAttachment: 'fixed'
-        }} 
-      />
-
       {/* Background Atmosphere */}
       <div className="absolute inset-0 opacity-20 pointer-events-none">
         <div className={`absolute top-0 left-0 w-full h-full transition-opacity duration-[3000ms] ${phase === AppPhase.FINALE ? 'opacity-40' : 'opacity-100'} bg-[radial-gradient(circle_at_50%_50%,#1a1a1a_0%,transparent_70%)]`} />
